@@ -24,7 +24,7 @@ const VideoUpload = () => {
   
     try {
       setLoading(true);
-      const res = await axios.post("http://localhost:5000/upload", formData, {
+      const res = await axios.post("https://video-stream-app-32j9.vercel.app/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Video uploaded successfully!");

@@ -7,7 +7,7 @@ const VideoList = () => {
   const [error, setError] = useState(null); // Add error state
 
   useEffect(() => {
-    fetch("http://localhost:5000/videos")
+    fetch("https://video-stream-app-32j9.vercel.app/videos")
       .then((res) => res.json())
       .then((data) => {
         setLoading(false);

@@ -77,7 +77,7 @@ app.get("/videos", async (req, res) => {
       length: file.length,              // Video file size in bytes
       contentType: file.contentType,    // MIME type (e.g., video/mp4)
       uploadDate: file.uploadDate,      // Date when the video was uploaded
-      videoUrl: `http://localhost:5000/video/${file._id}`, // URL to stream the video
+      videoUrl: `https://video-stream-app-32j9.vercel.app/video/${file._id}`, // URL to stream the video
     }));
 
     // Return the video list in JSON format
