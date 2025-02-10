@@ -8,7 +8,7 @@ const { GridFSBucket } = require("mongodb");
 const stream = require("stream");
 
 const app = express();
-app.use(cors({ origin: "*" })); // Allow all origins
+app.use(cors()); // Allow all origins
 app.use(bodyParser.json());
 
 const mongoURI = process.env.DATABASE_URL;
@@ -62,23 +62,28 @@ app.post("/upload", upload.single("video"), async (req, res) => {
 // Get all videos
 app.get("/videos", async (req, res) => {
   try {
+    // Fetch all stored video files from GridFS
     const files = await gridFSBucket.find().toArray();
 
+    // Check if there are no videos
     if (!files || files.length === 0) {
       return res.status(404).json({ error: "No videos found" });
     }
 
+    // Transform the files into a structured response
     const videoList = files.map((file) => ({
-      _id: file._id,
-      filename: file.metadata.title,
-      length: file.length,
-      contentType: file.contentType,
-      uploadDate: file.uploadDate,
-      videoUrl: `https://video-app-backend-1.onrender.com/video/${file._id}`, // Streaming URL
+      _id: file._id,                   // Unique ID of the video
+      filename: file.metadata.title,    // Video title (from metadata)
+      length: file.length,              // Video file size in bytes
+      contentType: file.contentType,    // MIME type (e.g., video/mp4)
+      uploadDate: file.uploadDate,      // Date when the video was uploaded
+      videoUrl: `http://localhost:5000/video/${file._id}`, // URL to stream the video
     }));
 
+    // Return the video list in JSON format
     res.json(videoList);
   } catch (err) {
+    // Handle any errors
     res.status(500).json({ error: err.message });
   }
 });
@@ -94,10 +99,15 @@ app.get("/video/:id", async (req, res) => {
     }
 
     const videoSize = file[0].length;
+    const contentType = file[0].contentType;
     const range = req.headers.range;
 
     if (!range) {
-      return res.status(400).json({ error: "Requires Range header" });
+      res.set({
+        "Content-Length": videoSize,
+        "Content-Type": contentType,
+      });
+      return gridFSBucket.openDownloadStream(fileId).pipe(res);
     }
 
     const CHUNK_SIZE = 10 ** 6; // 1MB chunks
@@ -109,15 +119,18 @@ app.get("/video/:id", async (req, res) => {
       "Content-Range": `bytes ${start}-${end}/${videoSize}`,
       "Accept-Ranges": "bytes",
       "Content-Length": contentLength,
-      "Content-Type": "video/mp4",
+      "Content-Type": contentType,
     });
 
     const downloadStream = gridFSBucket.openDownloadStream(fileId, { start, end });
     downloadStream.pipe(res);
   } catch (err) {
-    res.status(500).json({ error: "Video not found" });
+    res.status(500).json({ error: "Error streaming video" });
   }
 });
+
+
+app.get("/", (req, res) => res.send("api working!"));
 
 const PORT = 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

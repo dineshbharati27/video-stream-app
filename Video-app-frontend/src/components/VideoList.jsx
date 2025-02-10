@@ -3,18 +3,24 @@ import VideoPlayer from "./VideoPlayer";
 
 const VideoList = () => {
   const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null); // Add error state
 
   useEffect(() => {
-    fetch("https://video-app-backend-1.onrender.com/videos")
+    fetch("http://localhost:5000/videos")
       .then((res) => res.json())
       .then((data) => {
+        setLoading(false);
         if (data.error) {
-          console.error(data.error);
+          setError(data.error);
         } else {
           setVideos(data);
         }
       })
-      .catch((error) => console.error("Error fetching videos:", error));
+      .catch((error) => {
+        setLoading(false);
+        setError("Failed to load videos");
+      });
   }, []);
 
   return (
@@ -23,7 +29,9 @@ const VideoList = () => {
         Uploaded Videos
       </h2>
 
-      {videos.length === 0 ? (
+      {loading && <p className="text-center text-gray-400">Loading...</p>}
+      {error && <p className="text-center text-red-500">{error}</p>}
+      {videos.length === 0 && !loading && !error ? (
         <p className="text-center text-gray-400">No videos found</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

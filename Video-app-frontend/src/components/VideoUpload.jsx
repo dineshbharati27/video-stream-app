@@ -5,6 +5,9 @@ const VideoUpload = () => {
   const [title, setTitle] = useState("");
   const [video, setVideo] = useState(null);
 
+  const [loading, setLoading] = useState(false);
+
+
   const handleFileChange = (e) => {
     setVideo(e.target.files[0]);
   };
@@ -14,21 +17,28 @@ const VideoUpload = () => {
       alert("Please enter a title and select a video!");
       return;
     }
-
+  
     const formData = new FormData();
     formData.append("title", title);
     formData.append("video", video);
-
+  
     try {
-      const res = await axios.post("https://video-app-backend-1.onrender.com/upload", formData, {
+      setLoading(true);
+      const res = await axios.post("http://localhost:5000/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       alert("Video uploaded successfully!");
       console.log(res.data);
+      setTitle(""); // Clear input fields
+      setVideo(null);
     } catch (error) {
       console.error("Upload failed", error);
+      alert("Failed to upload video. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+  
 
   return (
     <div className="max-w-lg mx-auto bg-white shadow-lg rounded-lg p-6 border border-[#6A1E55]">
@@ -50,10 +60,13 @@ const VideoUpload = () => {
       />
       <button
         onClick={handleUpload}
-        className="bg-[#A64D79] text-black px-4 py-2 rounded w-full hover:bg-[#6A1E55] transition"
+        disabled={loading}
+        className={`bg-[#A64D79] text-black px-4 py-2 rounded w-full 
+                    hover:bg-[#6A1E55] transition ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
       >
-        Upload
+        {loading ? "Uploading..." : "Upload"}
       </button>
+
     </div>
   );
 };
