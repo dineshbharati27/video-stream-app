@@ -8,7 +8,11 @@ const { GridFSBucket } = require("mongodb");
 const stream = require("stream");
 
 const app = express();
-app.use(cors()); // Allow all origins
+app.use(cors({
+                origin: "https://video-stream-app-nine.vercel.app",
+                methods: ["GET", "POST", "PUT", "DELETE"],
+                allowedHeaders: ["Content-Type"]
+              })); // Allow all origins
 app.use(bodyParser.json());
 
 const mongoURI = process.env.DATABASE_URL;
